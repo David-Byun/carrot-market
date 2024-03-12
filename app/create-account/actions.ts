@@ -1,12 +1,42 @@
 'use server';
+import bcrypt from 'bcrypt';
+
 import {
   PASSWORD_MIN_LENGTH,
   PASSWORD_REGEX,
   PASSWORD_REGEX_ERROR,
 } from '@/lib/constants';
+import db from '@/lib/db';
 import { z } from 'zod';
 
-const checkUsername = (username: string) => !username.includes('potato');
+const checkUsername = async (username: string) => {
+  const user = await db.user.findUnique({
+    where: {
+      username,
+    },
+    select: {
+      id: true,
+    },
+  });
+  // if (user) {
+  //   return false;
+  // } else {
+  //   return true;
+  // }
+  return !Boolean(user);
+};
+
+const checkEmail = async (email: string) => {
+  const user = await db.user.findUnique({
+    where: {
+      email,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return !Boolean(user);
+};
 
 const checkPasswords = ({
   password,
@@ -25,19 +55,31 @@ const formSchema = z
       })
       .toLowerCase()
       .trim()
-      .transform((username) => `😀 ${username}`)
-      .refine(checkUsername, 'No potatoes allowed!'),
-    email: z.string().email().toLowerCase(),
-    password: z
+      //.transform((username) => `😀 ${username}`)
+      .refine(checkUsername, 'This username is already taken'),
+    email: z
       .string()
-      .min(PASSWORD_MIN_LENGTH)
-      .regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
+      .email()
+      .toLowerCase()
+      .refine(
+        checkEmail,
+        'There is an account already registered with that email'
+      ),
+    password: z.string().min(PASSWORD_MIN_LENGTH),
+    // .regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
     confirm_password: z.string().min(PASSWORD_MIN_LENGTH),
   })
   .refine(checkPasswords, {
     message: 'Both passwords should be the same!',
     path: ['confirm_password'],
   });
+
+// check if username is taken
+// check if the email is already used
+// hash password
+// save the user to db
+// log the user in
+// redirect "/home"
 
 export async function createAccount(prevState: any, formData: FormData) {
   const data = {
@@ -46,10 +88,24 @@ export async function createAccount(prevState: any, formData: FormData) {
     password: formData.get('password'),
     confirm_password: formData.get('confirm_password'),
   };
-  const result = formSchema.safeParse(data);
+  const result = await formSchema.safeParseAsync(data);
   if (!result.success) {
     return result.error.flatten();
   } else {
-    console.log(result.data);
+    // hash password
+    const hashedPassword = await bcrypt.hash(result.data.password, 12);
+
+    // save the user to db
+    const user = await db.user.create({
+      data: {
+        username: result.data.username,
+        email: result.data.email,
+        password: hashedPassword,
+      },
+      select: {
+        id: true,
+      },
+    });
+    console.log(user);
   }
 }
