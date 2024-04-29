@@ -1,9 +1,9 @@
 'use client';
 
-import { InitialProducts } from '@/app/(tabs)/products/page';
+import { InitialProducts } from '@/app/(tabs)/home/page';
 import ListProduct from './list-product';
 import { useEffect, useRef, useState } from 'react';
-import { getMoreProducts } from '@/app/(tabs)/products/actions';
+import { getMoreProducts } from '@/app/(tabs)/home/actions';
 
 interface ProductListProps {
   initialProducts: InitialProducts;
@@ -56,7 +56,7 @@ export default function ProductList({ initialProducts }: ProductListProps) {
       {products.map((product) => (
         <ListProduct key={product.id} {...product} />
       ))}
-      {!isLastPage ? (
+      {/* {!isLastPage ? (
         <span
           style={{
             marginTop: `${page + 1 * 900}vh`,
@@ -66,7 +66,7 @@ export default function ProductList({ initialProducts }: ProductListProps) {
         >
           {isLoading ? '로딩 중' : 'Load More'}
         </span>
-      ) : null}
+      ) : null} */}
     </div>
   );
 }

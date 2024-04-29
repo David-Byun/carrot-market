@@ -24,15 +24,16 @@ export async function middleware(request: NextRequest) {
   if (!session.id) {
     if (!exists) {
       return NextResponse.redirect(new URL('/', request.url));
-    } else {
-      if (exists) {
-        return NextResponse.redirect(new URL('/products', request.url));
-      }
+    }
+  } else {
+    if (exists) {
+      return NextResponse.redirect(new URL('/home', request.url));
     }
   }
+}
 
-  //request.nextUrl을 사용해서 url을 컨트롤할 수 있음
-  /*
+//request.nextUrl을 사용해서 url을 컨트롤할 수 있음
+/*
   console.log(request.nextUrl.pathname);
   console.log(cookies());
   const session = await getSession();
@@ -49,7 +50,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url));
   }
   */
-}
 
 //https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher
 export const config = {

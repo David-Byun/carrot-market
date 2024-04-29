@@ -3,27 +3,15 @@
 import { z } from 'zod';
 import fs from 'fs/promises';
 import db from '@/lib/db';
+import getSession from '@/lib/session';
+import { redirect } from 'next/navigation';
+import { productSchema } from './schema';
 // async와 await를 사용하기 위해서 promises 사용
 
-const productSchema = z.object({
-  photo: z.string({
-    required_error: 'Photo is required',
-  }),
-  title: z
-    .string({
-      required_error: 'Title is required',
-    })
-    .min(10)
-    .max(50),
-  description: z.string({
-    required_error: 'Description is required',
-  }),
-  price: z.coerce.number({
-    required_error: 'Price is required',
-  }),
-  // string -> number
-});
-
+/*
+  코드챌린지 1. 유저가 다른 것 말고 이미지를 업로드했는지 확인
+  2. 사이즈 체크(예를 들면 이미지 최대 사이즈 2MB)
+*/
 export async function uploadProduct(_: any, formData: FormData) {
   const data = {
     title: formData.get('title'),
@@ -60,6 +48,7 @@ export async function uploadProduct(_: any, formData: FormData) {
           id: true,
         },
       });
+      redirect(`/products/${product.id}`);
     }
   }
 }
