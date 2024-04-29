@@ -3,7 +3,7 @@ import ProductList from '@/components/product-list';
 import db from '@/lib/db';
 import { PlusIcon } from '@heroicons/react/24/solid';
 import { Prisma } from '@prisma/client';
-import { unstable_cache as nextCache } from 'next/cache';
+import { unstable_cache as nextCache, revalidatePath } from 'next/cache';
 import Link from 'next/link';
 
 /* 
@@ -15,10 +15,14 @@ import Link from 'next/link';
   cache 새로 고침 방법
   1. revalidate : 함수가 호출된 후 60초가 지나지 않은 경우에 NextJs는 Cache 안에 있는 데이터를 return, 시간이 지나면 최신 데이터 복사본을 얻기 위해 함수를 다시 실행
 
-*/
-const getCachedProducts = nextCache(getInitialProducts, ['home-products'], {
+  const getCachedProducts = nextCache(getInitialProducts, ['home-products'], {
   revalidate: 60,
-});
+  });
+
+  2. 새로고침해줘 요청하기
+
+*/
+const getCachedProducts = nextCache(getInitialProducts, ['home-products']);
 
 async function getInitialProducts() {
   console.log('hit');
@@ -51,10 +55,17 @@ export const metadata = {
 */
 export default async function Products() {
   const initialProducts = await getCachedProducts();
+  const revalidate = async () => {
+    'use server';
+    // 이 함수는 NextJS에게 특정 URL의 cache를 새로고침해달라고 해줌
+    revalidatePath('/home');
+  };
   return (
     <div>
-      <Link href="/home/recent">Recent Products</Link>
       <ProductList initialProducts={initialProducts} />
+      <form action={revalidate}>
+        <button>Revalidate</button>
+      </form>
       <Link
         href="/products/add"
         className="bg-orange-500 flex items-center justify-center rounded-full size-16 fixed bottom-24 right-8 text-white transition-colors hover:bg-orange-400"

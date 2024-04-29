@@ -4,6 +4,7 @@ import { UserIcon } from '@heroicons/react/24/solid';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { unstable_cache as nextCache } from 'next/cache';
 
 /*
 
@@ -19,6 +20,7 @@ async function getIsOwner(userId: number) {
 */
 
 async function getProduct(id: number) {
+  console.log('product')
   const product = await db.product.findUnique({
     where: {
       id,
@@ -36,8 +38,35 @@ async function getProduct(id: number) {
   return product;
 }
 
+const getCachedProduct = nextCache(getProduct, ['product-detail'], {
+  tags: ['product-detail'],
+});
+
+async function getProductTitle(id: number) {
+  console.log('title');
+  const product = await db.product.findUnique({
+    where: {
+      id,
+    },
+    select: {
+      title: true,
+    },
+  });
+  console.log(product);
+  return product;
+}
+
+/* 
+  getProductTitle(id) 안하는 이유는 nextCache가 자동으로 여러분이 적은 함수에 여러분이 보낸 argument를 제공함 
+  key는 unique 해야하며, tags와 key가 같을 필요는 없음
+  tags는 여러 태그를 가질 수 있으며 여러분의 애플리케이션 여러 cache에서 공유될 수 있음
+*/
+const getCachedProductTitle = nextCache(getProductTitle, ['product-title'], {
+  tags: ['product-title'],
+});
+
 export async function generateMetadata({ params }: { params: { id: string } }) {
-  const product = await getProduct(Number(params.id));
+  const product = await getCachedProductTitle(Number(params.id));
   return {
     title: product?.title,
   };
@@ -52,7 +81,7 @@ export default async function ProductDetail({
   if (isNaN(id)) {
     return notFound();
   }
-  const product = await getProduct(id);
+  const product = await getCachedProduct(id);
   if (!product) {
     return notFound();
   }
