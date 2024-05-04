@@ -6,6 +6,12 @@ import { Prisma } from '@prisma/client';
 import { unstable_cache as nextCache, revalidatePath } from 'next/cache';
 import Link from 'next/link';
 
+/*
+  #13.6
+  build시 Static, Dynamic 차이는 이 페이지는 누가 보는지에 따라 내용이 달라지나요? 다.
+  ex) 홈페이지 메인은 db에서 조회해오지만 사용자에 따라 달라지지 않으므로 static이다(쿠키사용 X)
+  기본설정 : Next js에게 페이지를 revalidate 하는건 여러분의 몫이다(최신버전의 html로 바꾸는 것도 여러분의 몫)
+*/
 /* 
   https://nextjs.org/docs/app/api-reference/functions/unstable_cache
   첫번째 argument : 비용이 많이 드는 계산이나 데이터베이스 query를 가동시키는 함수 

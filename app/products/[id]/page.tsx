@@ -4,23 +4,33 @@ import { UserIcon } from '@heroicons/react/24/solid';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { unstable_cache as nextCache } from 'next/cache';
+import { unstable_cache as nextCache, revalidateTag } from 'next/cache';
+import getSession from '@/lib/session';
 
 /*
+  fetch("api") - nextjs에서 자동으로 캐시해줌
+  nextCache - 다른 데이터를 cache하는데 사용됨
 
-session 강의 완료하고 테스트 해보기
-
+  아래와 같은 형식도 가능(db 직접 연동이 아닌 API 사용할 때)
+  async function getProduct(id : number){
+    fetch("https://api.com", {
+      next : {
+        revalidate: 60,
+        tags:["hello"]
+      }
+    })
+  }
+*/
 async function getIsOwner(userId: number) {
   const session = await getSession();
-  if(session.id){
-    return session.id === userId
+  if (session.id) {
+    return session.id === userId;
   }
   return false;
 }
-*/
 
 async function getProduct(id: number) {
-  console.log('product')
+  console.log('product');
   const product = await db.product.findUnique({
     where: {
       id,
@@ -85,7 +95,11 @@ export default async function ProductDetail({
   if (!product) {
     return notFound();
   }
-  //const isOwner = await getIsOwner(product.userId);
+  const isOwner = await getIsOwner(product.userId);
+  const revalidate = async () => {
+    'use server';
+    revalidateTag('product-title');
+  };
   return (
     <div>
       <div className="relative aspect-square">
@@ -121,7 +135,19 @@ export default async function ProductDetail({
         <span className="font-semibold text-xl">
           {formatToWon(product.price)}원
         </span>
-        {/* {isOwner ? <button className="bg-orange-500 px-5 py-2.5 text-white font-semibold">Delete Product</button> : null} */}
+        {isOwner ? (
+          <form action={revalidate}>
+            <button className="bg-orange-500 px-5 py-2.5 text-white font-semibold">
+              Revalidate title cache
+            </button>
+          </form>
+        ) : (
+          <form action={revalidate}>
+            <button className="bg-orange-500 px-5 py-2.5 text-white font-semibold">
+              Revalidate title cache
+            </button>
+          </form>
+        )}
         <Link
           className="bg-orange-500 px-5 py-2.5 text-white font-semibold"
           href={``}
