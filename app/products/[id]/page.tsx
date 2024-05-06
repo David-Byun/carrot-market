@@ -3,7 +3,7 @@ import { formatToWon } from '@/lib/utils';
 import { UserIcon } from '@heroicons/react/24/solid';
 import Image from 'next/image';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { unstable_cache as nextCache, revalidateTag } from 'next/cache';
 import getSession from '@/lib/session';
 
@@ -100,6 +100,24 @@ export default async function ProductDetail({
     'use server';
     revalidateTag('product-title');
   };
+
+  //server action을 만들 때마다 모든 server action을 별도의 파일에 옮겨두는게 좋을 것 같음
+  const createChatRoom = async () => {
+    'use server';
+    const session = await getSession();
+    const room = await db.chatRoom.create({
+      data: {
+        users: {
+          //seller, buyer
+          connect: [{ id: product.userId }, { id: session.id }],
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+    redirect(`/chats/${room.id}`);
+  };
   return (
     <div>
       <div className="relative aspect-square">
@@ -148,12 +166,11 @@ export default async function ProductDetail({
             </button>
           </form>
         )}
-        <Link
-          className="bg-orange-500 px-5 py-2.5 text-white font-semibold"
-          href={``}
-        >
-          채팅하기
-        </Link>
+        <form action={createChatRoom}>
+          <button className="bg-orange-500 px-5 py-2.5 text-white font-semibold">
+            채팅하기
+          </button>
+        </form>
       </div>
     </div>
   );

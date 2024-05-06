@@ -1,3 +1,4 @@
+import LikeButton from '@/components/like-button';
 import db from '@/lib/db';
 import getSession from '@/lib/session';
 import { formatToTimeAgo } from '@/lib/utils';
@@ -10,6 +11,11 @@ import {
 } from 'next/cache';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
+
+/*
+  게시물당 댓글 기능 추가하기(보여주기, 댓글 optimistic 사용)
+  [...previousCommnet, {newComment}]
+*/
 
 const getCachedPost = nextCache(getPost, ['post-detail'], {
   tags: ['post-detail'],
@@ -80,6 +86,10 @@ async function getLikeStatus(postId: number) {
   };
 }
 
+/*
+  optimistic response는 마치 백엔드에서 mutation이 성공한 것처럼 UI를 수정
+  button > client여야한다.
+*/
 export default async function PostDetail({
   params,
 }: {
@@ -93,38 +103,6 @@ export default async function PostDetail({
   if (!post) {
     return notFound();
   }
-  const likePost = async () => {
-    'use server';
-    const session = await getSession();
-    try {
-      await db.like.create({
-        data: {
-          postId: id,
-          //TypeScript는 session에 id가 없을수도 있다고 생각하므로, 로그인하지 않은 유저는 아예 이 페이지에 들어올 수 없으므로 느낌표로 있다고 알려줌
-          userId: session.id!,
-        },
-      });
-      revalidateTag(`like-status-${id}`);
-    } catch (e) {}
-  };
-  const dislikePost = async () => {
-    'use server';
-    try {
-      const session = await getSession();
-      console.log(session.id);
-      await db.like.delete({
-        where: {
-          id: {
-            postId: id,
-            //TypeScript는 session에 id가 없을수도 있다고 생각하므로, 로그인하지 않은 유저는 아예 이 페이지에 들어올 수 없으므로 느낌표로 있다고 알려줌
-            userId: session.id!,
-          },
-        },
-      });
-      revalidateTag(`like-status-${id}`);
-    } catch (e) {}
-  };
-
   const { likeCount, isLiked } = await getCachedLikeStatus(id);
   return (
     <div className="p-5 text-white">
@@ -150,26 +128,7 @@ export default async function PostDetail({
           <EyeIcon className="size-5" />
           <span>조회 {post.views}</span>
         </div>
-        <form action={isLiked ? dislikePost : likePost}>
-          <button
-            className={`flex items-center gap-2 text-neutral-400 text-sm border border-neutral-400 rounded-full p-2  transition-colors ${
-              isLiked
-                ? 'bg-orange-500 text-white border-orange-500'
-                : 'hover:bg-neutral-800'
-            }`}
-          >
-            {isLiked ? (
-              <HandThumbUpIcon className="size-5" />
-            ) : (
-              <OutlineHandThumbUpIcon className="size-5" />
-            )}
-            {isLiked ? (
-              <span>{likeCount}</span>
-            ) : (
-              <span>공감하기 ({likeCount})</span>
-            )}
-          </button>
-        </form>
+        <LikeButton isLiked={isLiked} likeCount={likeCount} postId={id} />
       </div>
     </div>
   );
