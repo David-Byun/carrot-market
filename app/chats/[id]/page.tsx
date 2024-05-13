@@ -1,5 +1,7 @@
+import ChatMessagesList from '@/components/chat-messages-list';
 import db from '@/lib/db';
 import getSession from '@/lib/session';
+import { Prisma } from '@prisma/client';
 import { notFound } from 'next/navigation';
 
 /*
@@ -39,9 +41,20 @@ async function getMessage(chatRoomId: string) {
       payload: true,
       created_at: true,
       // 누구의 메시지인지를 알아야 하는 것이 중요하다
+      userId: true,
+      user: {
+        select: {
+          avatar: true,
+          username: true,
+        },
+      },
     },
   });
+  return messages;
 }
+
+//type을 보내기 위한 작업 : chat-messages-list 에서 import 할 수 있음
+export type InitialChatMessages = Prisma.PromiseReturnType<typeof getMessage>;
 
 export default async function ChatRoom({ params }: { params: { id: string } }) {
   /*
@@ -52,6 +65,12 @@ export default async function ChatRoom({ params }: { params: { id: string } }) {
   if (!room) {
     return notFound();
   }
+  const initialMessages = await getMessage(params.id);
+  const session = await getSession();
+  console.log(initialMessages);
 
-  return <h1>chat!</h1>;
+  //바로 아래 렌더링 하지 않는 이유는 채팅 메세지가 상호작용되지 않게 하고 새로고침해주고 싶기 때문임
+  return (
+    <ChatMessagesList userId={session.id!} initialMessages={initialMessages} />
+  );
 }
