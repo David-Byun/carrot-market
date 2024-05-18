@@ -14,13 +14,6 @@ const roboto = Roboto({
   variable: '--roboto-text',
 });
 
-const rubick = Rubik_Scribble({
-  weight: '400',
-  style: 'normal',
-  subsets: ['latin'],
-  variable: '--rubik-text',
-});
-
 const kb = localFont({
   src: './KBFGTextL.otf',
   variable: '--kb',
@@ -42,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${roboto.variable} ${rubick.variable} ${kb.variable} bg-neutral-900 text-white max-w-screen-sm m-auto`}
+        className={`${roboto.variable}  ${kb.variable} bg-neutral-900 text-white max-w-screen-sm m-auto`}
       >
         {children}
       </body>

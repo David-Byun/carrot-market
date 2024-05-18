@@ -10,7 +10,6 @@ const config: Config = {
     extend: {
       fontFamily: {
         roboto: 'var(--roboto-text)',
-        rubick: 'var(--rubick-text)',
         kb: 'var(--kb)',
       },
     },
