@@ -3,6 +3,8 @@ import ProductList from '@/components/product-list';
 import db from '@/lib/db';
 import { PlusIcon } from '@heroicons/react/24/solid';
 import { Prisma } from '@prisma/client';
+
+// 이 함수는 연산처리가 많은 계산들이나 데이터 베이스 query 같은 걸 cache 할 수 있게 해줌
 import { unstable_cache as nextCache, revalidatePath } from 'next/cache';
 import Link from 'next/link';
 
@@ -54,6 +56,19 @@ export type InitialProducts = Prisma.PromiseReturnType<
 export const metadata = {
   title: 'Home',
 };
+
+/*
+Route Segment Config
+https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config
+
+아래 처럼만 작성하면 NextJs에서 옵션을 확인할 수 있음
+force-dynamic을 사용할때 사실 이곳은 nextCache를 사용하기에 알맞은 곳임
+
+revalidate는 특정한 시간에 페이지를 재검증하도록 Next js에게 지시할 수 있음
+** 니콜라스 의견상 이 방법이 최고의 솔루션(업데이트 원하는 시간)
+ex) export const revalidate = 60;
+*/
+export const dynamic = 'force-dynamic';
 
 /* 
   처음에 getCachedProducts 실행해서 'home-products' 찾고 없으면 getInitialProducts 실행해서 해당 데이터를 저장한다.

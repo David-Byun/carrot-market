@@ -7,7 +7,13 @@ const config: Config = {
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        roboto: 'var(--roboto-text)',
+        rubick: 'var(--rubick-text)',
+        kb: 'var(--kb)',
+      },
+    },
   },
   plugins: [require('daisyui'), require('@tailwindcss/forms')],
 };

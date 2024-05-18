@@ -2,7 +2,6 @@ import db from '@/lib/db';
 import { formatToWon } from '@/lib/utils';
 import { UserIcon } from '@heroicons/react/24/solid';
 import Image from 'next/image';
-import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { unstable_cache as nextCache, revalidateTag } from 'next/cache';
 import getSession from '@/lib/session';
@@ -22,6 +21,7 @@ import getSession from '@/lib/session';
   }
 */
 async function getIsOwner(userId: number) {
+  //우리가 cookies를 사용하면 이 페이지들을 미리 render 해줄 수 없음
   const session = await getSession();
   if (session.id) {
     return session.id === userId;
@@ -174,4 +174,32 @@ export default async function ProductDetail({
       </div>
     </div>
   );
+}
+
+/*
+generateStaticParams
+https://nextjs.org/docs/app/api-reference/functions/generate-static-params
+(#13.10 generateStaticParams)
+함수명 똑같해야한다(ex metadata 처럼)
+
+그러면 revalidatePath("/products/4")이런 형식으로 최신 정보를 가지고 static을 만들어준다
+데이터가 많으면 오히려 부작용이 나올 수 있으므로 상황에 따라 다르게 사용
+*/
+export async function generateStaticParams() {
+  // 이 함수는 무조건 array를 return 해야함 -> 여기서는 productDetail 함수가 받을 가능성이 있는 parameter 들이 들어있는 array(같은 모양, 같은 타입)
+  const products = await db.product.findMany({
+    select: {
+      id: true,
+    },
+  });
+  return products.map((product) => ({ id: product.id + '' }));
+
+  /* 
+    #13.11 dynamicParams
+    default 설정 : dynamicParams true
+    dynamicParams가 true 일때는 미리 생성되지 않은 페이지들이 dynamic 페이지들로 간주됨
+    export const dynamicParams = true;
+
+    false 로 하면 오직 빌드할때 미리생성한 페이지로만 이동할 수 있음
+  */
 }
