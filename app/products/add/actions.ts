@@ -52,3 +52,9 @@ export async function uploadProduct(_: any, formData: FormData) {
     }
   }
 }
+
+/*
+Cloudflare
+URL 알려줌 : User --> Server --> 브라우저 이미지 (cloudflare 안전한 업로드 URL 알려줘) CF(Upload URL) --> User
+서버에 저장하는게 아니라 CF로 바로 저장 : User --> CF --> 업로드 URL --> DB에 저장
+*/
