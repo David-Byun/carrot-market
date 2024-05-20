@@ -59,11 +59,9 @@ export default async function StreamDetail({
         </div>
       </div>
       <div className="p-5">
-        <h1 className="text-2xl font-semibold">타이틀</h1>
-        <p>설명</p>
+        <h1 className="text-2xl font-semibold">{stream.title}</h1>
       </div>
       <div className="fixed w-full p-5 bottom-0 left-0 pb-10 bg-neutral-800 flex justify-between items-center">
-        <span className="font-semibold text-xl">원</span>
         <form>
           <button className="bg-orange-500 px-5 py-2.5 text-white font-semibold">
             채팅하기

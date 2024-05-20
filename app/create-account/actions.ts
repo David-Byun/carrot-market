@@ -52,7 +52,7 @@ const checkPasswords = ({
 
 const formSchema = z
   .object({
-    username: z
+    username: z //에러가 여러개인 경우에는 여러 에러 메시지들을 object로 전달할 수 있음
       .string({
         invalid_type_error: 'Username must be a string!',
         required_error: 'Where is my username???',
@@ -61,14 +61,14 @@ const formSchema = z
       .trim()
       //.transform((username) => `😀 ${username}`)
       .refine(checkUsername, 'This username is already taken'),
-    email: z
-      .string()
-      .email()
-      .toLowerCase()
-      .refine(
-        checkEmail,
-        'There is an account already registered with that email'
-      ),
+    email: z.string().email().toLowerCase().refine(
+      //validators 를 직접 만들어서 확인할 수 있음
+      checkEmail,
+      'There is an account already registered with that email'
+    ) /* 
+      password는 password와 confirm_password를 모두 확인해야 하므로 refine을 사용할 수 없었음(그래서 refine을 밖으로 옮김) 
+      아래 .refine(checkPasswords ~ 부분)
+    */,
     password: z.string().min(PASSWORD_MIN_LENGTH),
     // .regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
     confirm_password: z.string().min(PASSWORD_MIN_LENGTH),
@@ -139,9 +139,18 @@ export async function createAccount(prevState: any, formData: FormData) {
     password: formData.get('password'),
     confirm_password: formData.get('confirm_password'),
   };
+  //data는 데이터 검증으로만 사용하고 데이터의 검증과 변환이 끝나면 result.data로 사용해야함(data object는 사용하면 안됨 - validation X)
+  //safeParse는 데이터를 parse, validate, transform 해줌 - schema 형태에 따라서, schema는 우리가 zod에게 작성해둔 zod object임
   const result = await formSchema.safeParseAsync(data);
+  //safeParse는 try - catch 없이, success 값을 내려줌
   if (!result.success) {
     //superRefine을 사용하므로 에러타입이 fieldErrors가 아닌 formErrors 형태로 들어감(zod는 타입을 모르기 때문에)
+    /*
+    flatten 함수를 호출하면 에러가 이런 형식으로 포맷팅 됨
+      {
+        password : ["too short", "too weak"]
+      }
+    */
     console.log(result.error.flatten());
     return result.error.flatten();
   } else {

@@ -20,6 +20,10 @@ const publicOnlyUrls: Routes = {
   '/github/complete': true,
 };
 
+/* 
+  user나 browser의 user 모든 request에 실행됨 
+  Prisma는 middleware에서 실행하는걸 지원하지 않음
+*/
 export async function middleware(request: NextRequest) {
   const session = await getSession();
   const exists = publicOnlyUrls[request.nextUrl.pathname];
@@ -56,8 +60,8 @@ export async function middleware(request: NextRequest) {
 //https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher
 export const config = {
   matcher: [
-    //middleware 실행하기 싫은 url을 필터링할 정규식을 입력
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    //middleware 실행하기 싫은 url을 필터링할 정규식을 입력, 이것이것을 제외한 모든 URL을 피하는 것을 의미함
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };
 
