@@ -16,8 +16,8 @@ export async function uploadProduct(_: any, formData: FormData) {
   const data = {
     title: formData.get('title'),
     photo: formData.get('photo'),
-    description: formData.get('price'),
-    price: formData.get('description'),
+    description: formData.get('description'),
+    price: formData.get('price'),
   };
   // 유저가 업로드한 파일을 우리 파일 시스템에 저장하는 건 좋은 방법이 아님
   if (data.photo instanceof File) {
