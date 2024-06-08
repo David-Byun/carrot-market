@@ -4,21 +4,26 @@ import Button from '@/components/button';
 import Input from '@/components/input';
 import { PhotoIcon } from '@heroicons/react/24/solid';
 import { useState } from 'react';
-import { uploadProduct } from './actions';
+import { getUploadUrl, uploadProduct } from './actions';
 import { useFormState } from 'react-dom';
 import { resolve } from 'path';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { ProductType, productSchema } from './schema';
 
+/*
+  게시할때 URL 을 받으면 오래 걸릴 수 있기 때문에 사진을 선택할때 업로드 URL을 받아올 수 있음
+  유저가 사용하지 않으면 one-time upload URL은 사라짐
+*/
 export default function AddProduct() {
   const [preview, setPreview] = useState('');
+  const [uploadUrl, setUploadUrl] = useState('');
   // react hook form 강의 관련
   const { register, handleSubmit } = useForm<ProductType>({
     resolver: zodResolver(productSchema),
   });
 
-  const onImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const onImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     //console.log(event.target.files);
     const {
       target: { files },
@@ -31,7 +36,14 @@ export default function AddProduct() {
     //이미지 용량 체크
     const url = URL.createObjectURL(file);
     setPreview(url);
+    //cloud flare 부분
+    const { success, result } = await getUploadUrl();
+    if (success) {
+      const { id, uploadURL } = result;
+      setUploadUrl(uploadURL);
+    }
   };
+  //uploadProduct action이 실행되기 전에, uploadUrl을 가져와서 이미지를 업로드하고, 그 다음 uploadProduct를 실행
   const [state, action] = useFormState(uploadProduct, null);
 
   return (

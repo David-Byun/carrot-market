@@ -20,12 +20,14 @@ export async function uploadProduct(_: any, formData: FormData) {
     price: formData.get('price'),
   };
   // 유저가 업로드한 파일을 우리 파일 시스템에 저장하는 건 좋은 방법이 아님
+  /*
   if (data.photo instanceof File) {
     const photoData = await data.photo.arrayBuffer();
     console.log(photoData);
     await fs.appendFile(`./public/${data.photo.name}`, Buffer.from(photoData));
     data.photo = `/${data.photo.name}`;
   }
+  */
   const result = productSchema.safeParse(data);
   if (!result.success) {
     return result.error.flatten();
@@ -57,4 +59,19 @@ export async function uploadProduct(_: any, formData: FormData) {
 Cloudflare
 URL 알려줌 : User --> Server --> 브라우저 이미지 (cloudflare 안전한 업로드 URL 알려줘) CF(Upload URL) --> User
 서버에 저장하는게 아니라 CF로 바로 저장 : User --> CF --> 업로드 URL --> DB에 저장
+키 노출을 하지 않기 위해서 서버에서 실행함(API Key, Account ID)
 */
+export async function getUploadUrl() {
+  const response = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/images/v2/direct_upload`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.CLOUDFLARE_API_KEY!}`,
+      },
+    }
+  );
+  const data = await response.json();
+  console.log(data);
+  return data;
+}
