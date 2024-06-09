@@ -30,7 +30,6 @@ async function getIsOwner(userId: number) {
 }
 
 async function getProduct(id: number) {
-  console.log('product');
   const product = await db.product.findUnique({
     where: {
       id,
@@ -53,7 +52,6 @@ const getCachedProduct = nextCache(getProduct, ['product-detail'], {
 });
 
 async function getProductTitle(id: number) {
-  console.log('title');
   const product = await db.product.findUnique({
     where: {
       id,
@@ -62,7 +60,7 @@ async function getProductTitle(id: number) {
       title: true,
     },
   });
-  console.log(product);
+
   return product;
 }
 
@@ -123,7 +121,7 @@ export default async function ProductDetail({
       <div className="relative aspect-square">
         <Image
           fill
-          src={product.photo}
+          src={`${product.photo}/public`}
           alt={product.title}
           className="object-cover"
         />

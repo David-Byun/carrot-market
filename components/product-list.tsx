@@ -1,9 +1,9 @@
 'use client';
 
-import { InitialProducts } from '@/app/(tabs)/home/page';
+import { getMoreProducts } from '@/app/(tabs)/products/actions';
 import ListProduct from './list-product';
 import { useEffect, useRef, useState } from 'react';
-import { getMoreProducts } from '@/app/(tabs)/home/actions';
+import { InitialProducts } from '@/app/(tabs)/products/page';
 
 interface ProductListProps {
   initialProducts: InitialProducts;
@@ -33,7 +33,7 @@ export default function ProductList({ initialProducts }: ProductListProps) {
 
           const newProducts = await getMoreProducts(page + 1);
           if (newProducts.length !== 0) {
-            setProducts((prev) => [...prev, ...newProducts]);
+            setProducts((prev: any) => [...prev, ...newProducts]);
             //page를 변경할 때 page가 useEffect의 dependency 이기 때문에 이 모든 코드가 다시 실행됨 -> 우리의 trigger가 다시 observe 된다는 의미
             setPage((prev) => prev + 1);
           } else {
@@ -65,7 +65,7 @@ export default function ProductList({ initialProducts }: ProductListProps) {
   */
   return (
     <div className="p-5 flex flex-col gap-5">
-      {products.map((product) => (
+      {products.map((product: any) => (
         <ListProduct key={product.id} {...product} />
       ))}
       {!isLastPage ? (
